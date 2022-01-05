@@ -26,7 +26,6 @@
           type="button"
           class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
-          <!-- Heroicon name: solid/mail -->
           <svg
             class="-ml-0.5 mr-2 h-6 w-6"
             xmlns="http://www.w3.org/2000/svg"
@@ -178,10 +177,11 @@ export default {
       this.page = windowData.page;
     }
 
-    const tickerData = localStorage.getItem("cryptonomicon-list");
-    if (tickerData) {
-      this.tickers = JSON.parse(tickerData);
-      this.subscribeToUpdates(ticker => {
+    const tickersData = localStorage.getItem("cryptonomicon-list");
+
+    if (tickersData) {
+      this.tickers = JSON.parse(tickersData);
+      this.tickers.forEach(ticker => {
         this.subscribeToUpdates(ticker.name);
       });
     }
@@ -192,7 +192,9 @@ export default {
       const start = (this.page - 1) * 6;
       const end = this.page * 6;
 
-      const filteredTickers = this.tickers.filter(ticker => ticker.name.includes(this.filter));
+      const filteredTickers = this.tickers.filter(ticker =>
+        ticker.name.includes(this.filter)
+      );
 
       this.hasNextPage = filteredTickers.length > end;
 
@@ -205,13 +207,14 @@ export default {
           `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=51d7e89141d650c3d01ca30156e047bf28012a548281e3335054c1f57acaecff`
         );
         const data = await f.json();
+
         this.tickers.find(t => t.name === tickerName).price =
           data.USD > 1 ? data.USD.toFixed(2) : data.USD.toPrecision(2);
 
         if (this.sel?.name === tickerName) {
           this.graph.push(data.USD);
         }
-      }, 3000);
+      }, 5000);
       this.ticker = "";
     },
 
@@ -249,7 +252,6 @@ export default {
   watch: {
     filter() {
       this.page = 1;
-
       window.history.pushState(
         null,
         document.title,
